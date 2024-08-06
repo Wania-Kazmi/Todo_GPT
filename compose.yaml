@@ -1,0 +1,131 @@
+version: "3.9"
+
+volumes:
+  postgres_db:
+    driver: local
+
+services:
+  postgres_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: waniakazmi
+      POSTGRES_PASSWORD: my_password
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+
+  backend:
+    container_name: backend
+    build: .
+      # context: .
+      # dockerfile: Dockerfile
+    depends_on:
+      - postgres_db
+    # environment:
+    # DATABASE_URL: postgresql://waniakazmi:my_password@postgres_db/todo_db
+    # - DAPR_HTTP_PORT=3501
+    # - DAPR_GRPC_PORT=50001
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/code
+    command:
+      [
+        "poetry",
+        "run",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8001",
+        "--reload",
+      ]
+
+  # dapr_placement:
+  #   image: "daprio/dapr:latest"
+  #   command: ["./placement", "-port", "50005"]
+  #   container_name: "dapr_placement"
+  #   ports:
+  #     - "50005:50005"
+
+  # cloudflared:
+  #   build:
+  #     context: ./cloudflared
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./cloudflared/config.yml:/etc/cloudflared/config.yml
+  #   command: tunnel run my-tunnel
+# version: "3.9"
+
+# volumes:
+#   postgres_db:
+#     driver: local
+
+# services:
+#   # dapr_placement:
+#   #   image: "daprio/dapr:latest"
+#   #   command: ["./placement", "-port", "50005"]
+#   #   container_name: "dapr_placement"
+#   #   ports:
+#   #     - "50005:50005"
+
+#   postgres_db:
+#     image: postgres:13
+#     environment:
+#       POSTGRES_USER: waniakazmi
+#       POSTGRES_PASSWORD: my_password
+#       POSTGRES_DB: todo_db
+#     ports:
+#       - "5432:5432"
+
+#   backend:
+#     container_name: backend
+#     build:
+#       context: ./backend
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres_db
+#     environment:
+#       # DATABASE_URL: postgresql://waniakazmi:my_password@postgres_db/todo_db
+#       - DAPR_HTTP_PORT=3501
+#       - DAPR_GRPC_PORT=50001
+#     ports:
+#       - "8001:8000"
+#     volumes:
+#       - ./backend:/code
+#     # command:
+#     #   [
+#     #     "dapr",
+#     #     "run",
+#     #     "--app-id",
+#     #     "backend",
+#     #     "--app-port",
+#     #     "8001",
+#     #     "--dapr-http-port",
+#     #     "3501",
+#     #     "--dapr-grpc-port",
+#     #     "50001",
+#     #     "--",
+#     #     "poetry",
+#     #     "run",
+#     #     "uvicorn",
+#     #     "app.main:app",
+#     #     "--host",
+#     #     "0.0.0.0",
+#     #     "--port",
+#     #     "8001",
+#     #     "--reload",
+#     #   ]
+
+#   # cloudflared:
+#   #   build:
+#   #     context: ./cloudflared
+#   #   depends_on:
+#   #     - backend
+#   #   volumes:
+#   #     - ./cloudflared/config.yml:/etc/cloudflared/config.yml
+#   #   command: tunnel run my-tunnel
